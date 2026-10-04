@@ -1,0 +1,21 @@
+# Сборка
+bin/
+obj/
+publish/
+artifacts/
+
+# Установщик (собирается скриптом)
+Installer/out/
+*.msi
+*.wixpdb
+
+# Среда разработки
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Прочее
+Thumbs.db
+desktop.ini
+Installer/art/

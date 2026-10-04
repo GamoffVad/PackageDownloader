@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Установщик Package Downloader (WiX v5) — один файл .msi со встроенным
+  self-contained приложением: .NET на целевой машине не требуется.
+
+  Сборка: Installer/build.ps1  (подробности там же)
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+
+  <Package Name="Package Downloader"
+           Manufacturer="GamoffVad"
+           Version="$(Version)"
+           UpgradeCode="D66E3709-2619-4950-BEC3-8494115A8AF8"
+           Scope="perMachine"
+           Compressed="yes"
+           Codepage="1251"
+           InstallerVersion="500">
+
+    <!-- Обновление поверх прежней версии, без удаления вручную. -->
+    <MajorUpgrade DowngradeErrorMessage="Уже установлена более новая версия Package Downloader." />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <Icon Id="AppIcon" SourceFile="$(ProjectDir)\app.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/GamoffVad/PackageDownloader" />
+    <Property Id="ARPNOREPAIR" Value="1" />
+
+    <!-- Оформление мастера установки. -->
+    <WixVariable Id="WixUILicenseRtf" Value="$(InstallerDir)\License.rtf" />
+    <WixVariable Id="WixUIBannerBmp"  Value="$(InstallerDir)\art\banner.bmp" />
+    <WixVariable Id="WixUIDialogBmp"  Value="$(InstallerDir)\art\dialog.bmp" />
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+
+    <!-- Галочка «запустить приложение» на последнем шаге. -->
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Запустить Package Downloader" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
+    <CustomAction Id="LaunchApplication" FileRef="AppExe" ExeCommand=""
+                  Return="asyncNoWait" Impersonate="yes" />
+    <UI>
+      <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" Value="LaunchApplication"
+               Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 AND NOT Installed" />
+    </UI>
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="Package Downloader">
+        <Directory Id="RESOURCESFOLDER" Name="Resources" />
+      </Directory>
+    </StandardDirectory>
+
+    <Feature Id="Main" Title="Package Downloader" Level="1"
+             Description="Приложение и скрипты локальных реестров NPM/NuGet.">
+      <ComponentGroupRef Id="ApplicationFiles" />
+    </Feature>
+
+    <ComponentGroup Id="ApplicationFiles">
+      <!-- Само приложение: один self-contained exe. -->
+      <Component Directory="INSTALLFOLDER">
+        <File Id="AppExe" Source="$(PublishDir)\PackageDownloader.exe" KeyPath="yes" />
+      </Component>
+
+      <!-- Скрипты локальных реестров (запускаются через Node.js). -->
+      <Component Directory="RESOURCESFOLDER">
+        <File Source="$(PublishDir)\Resources\npm-registry.mjs" KeyPath="yes" />
+      </Component>
+      <Component Directory="RESOURCESFOLDER">
+        <File Source="$(PublishDir)\Resources\nuget-server.mjs" KeyPath="yes" />
+      </Component>
+
+      <!-- Ярлык в меню «Пуск». -->
+      <Component Directory="ProgramMenuFolder" Guid="7B1F0C4A-2E44-4C77-9B2E-9A1D6E3F5A10">
+        <Shortcut Id="StartMenuShortcut"
+                  Name="Package Downloader"
+                  Description="Загрузка пакетов и моделей с зависимостями"
+                  Target="[INSTALLFOLDER]PackageDownloader.exe"
+                  WorkingDirectory="INSTALLFOLDER"
+                  Icon="AppIcon" />
+        <RegistryValue Root="HKCU" Key="Software\GamoffVad\PackageDownloader"
+                       Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+
+      <!-- Ярлык на рабочем столе. -->
+      <Component Directory="DesktopFolder" Guid="C4F2A8D1-5B63-4E19-8D0A-3F7C2B9E4D55">
+        <Shortcut Id="DesktopShortcut"
+                  Name="Package Downloader"
+                  Description="Загрузка пакетов и моделей с зависимостями"
+                  Target="[INSTALLFOLDER]PackageDownloader.exe"
+                  WorkingDirectory="INSTALLFOLDER"
+                  Icon="AppIcon" />
+        <RegistryValue Root="HKCU" Key="Software\GamoffVad\PackageDownloader"
+                       Name="DesktopShortcut" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+  </Package>
+</Wix>

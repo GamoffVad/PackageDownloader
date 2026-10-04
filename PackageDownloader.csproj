@@ -1,0 +1,59 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <RootNamespace>PackageDownloader</RootNamespace>
+    <AssemblyName>PackageDownloader</AssemblyName>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- Приложение WPF: DPI настраивается через app.manifest (PerMonitorV2), а не
+         через WinForms-API Application.SetHighDpiMode. Глушим WinForms-рекомендацию WFO0003. -->
+    <NoWarn>$(NoWarn);WFO0003</NoWarn>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+
+    <!-- Метаданные сборки: попадают в свойства файла и в установщик. -->
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <Product>Package Downloader</Product>
+    <Company>GamoffVad</Company>
+    <Authors>GamoffVad</Authors>
+    <Copyright>Copyright (c) 2026 GamoffVad</Copyright>
+    <Description>Загрузчик пакетов NuGet, NPM, PyPI, MCP и моделей HuggingFace вместе с зависимостями — для изолированных и корпоративных сетей.</Description>
+  </PropertyGroup>
+
+  <!-- Включён UseWindowsForms (нужен NotifyIcon в трее), но НЕ тянем глобальные
+       using'и WinForms/System.Drawing — иначе конфликт с типами WPF (Color, Brush,
+       Application, Clipboard…). TrayService использует явные алиасы. -->
+  <ItemGroup>
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NuGet.Protocol" Version="6.9.1" />
+    <PackageReference Include="NuGet.Packaging" Version="6.9.1" />
+    <PackageReference Include="Markdig" Version="0.37.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="app.ico" />
+    <!-- Шрифт иконок вложен в сборку, чтобы значки одинаково отображались на любой ОС
+         (в т.ч. Windows Server, где нет «Segoe Fluent Icons»). Доступен по pack-URI. -->
+    <Resource Include="Fonts\SegoeIcons.ttf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Resources\npm-registry.mjs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\nuget-server.mjs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
